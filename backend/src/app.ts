@@ -11,19 +11,29 @@ import projectRoutes from "./routes/project.routes.js";
 
 const app = express();
 
-const allowedOrigins = [
-  "https://piyumi-portfolio-cce9jxhn7-piyumi-madushanis-projects.vercel.app",
-  "https://piyumi-portfolio.vercel.app",
-];
-
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
+      // Allow requests without an origin
+      if (!origin) {
+        return callback(null, true);
       }
+
+      // Allow production Vercel domain
+      if (origin === "https://piyumi-portfolio.vercel.app") {
+        return callback(null, true);
+      }
+
+      // Allow Vercel preview deployments
+      if (
+        /^https:\/\/piyumi-portfolio-[a-z0-9]+-piyumi-madushanis-projects\.vercel\.app$/.test(
+          origin
+        )
+      ) {
+        return callback(null, true);
+      }
+
+      callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
   })
