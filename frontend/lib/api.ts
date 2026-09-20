@@ -1,8 +1,10 @@
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+if (!API_URL) {
+  throw new Error("NEXT_PUBLIC_API_URL is not configured");
+}
 export async function getProjects() {
-  const response = await fetch(`${API_URL}/projects`);
+  const response = await fetch(`${API_URL}/api/projects`);
 
   if (!response.ok) {
     throw new Error("Failed to fetch projects");
@@ -14,7 +16,7 @@ export async function getProjects() {
 }
 
 export async function getExperiences() {
-  const response = await fetch(`${API_URL}/experience`);
+  const response = await fetch(`${API_URL}/api/experience`);
 
   if (!response.ok) {
     throw new Error("Failed to fetch experiences");
@@ -26,7 +28,7 @@ export async function getExperiences() {
 }
 
 export async function getEducations() {
-  const response = await fetch(`${API_URL}/education`);
+  const response = await fetch(`${API_URL}/api/education`);
 
   if (!response.ok) {
     throw new Error("Failed to fetch education");
@@ -38,7 +40,7 @@ export async function getEducations() {
 }
 
 export async function getCertifications() {
-  const response = await fetch(`${API_URL}/certifications`);
+  const response = await fetch(`${API_URL}/api/certifications`);
 
   if (!response.ok) {
     throw new Error("Failed to fetch certifications");
@@ -50,7 +52,7 @@ export async function getCertifications() {
 }
 
 export async function getSkills() {
-  const response = await fetch(`${API_URL}/skills`);
+  const response = await fetch(`${API_URL}/api/skills`);
 
   if (!response.ok) {
     throw new Error("Failed to fetch skills");
@@ -67,7 +69,7 @@ export async function sendContact(data: {
   subject: string;
   message: string;
 }) {
-  const response = await fetch(`${API_URL}/contacts`, {
+  const response = await fetch(`${API_URL}/api/contacts`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
