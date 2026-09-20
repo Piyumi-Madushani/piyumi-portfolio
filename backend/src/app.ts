@@ -12,24 +12,18 @@ import projectRoutes from "./routes/project.routes.js";
 const app = express();
 
 const allowedOrigins = [
-  "http://localhost:3000",
-  process.env.FRONTEND_URL,
-].filter(Boolean);
+  "https://piyumi-portfolio-cce9jxhn7-piyumi-madushanis-projects.vercel.app",
+  "https://piyumi-portfolio.vercel.app",
+];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests without an Origin header
-      // (Postman, curl, server-to-server requests, etc.)
-      if (!origin) {
-        return callback(null, true);
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
       }
-
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
   })
