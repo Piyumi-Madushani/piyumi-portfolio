@@ -143,8 +143,8 @@ export default function AdminCertificationsPage() {
       };
 
       const url = editingId
-        ? `${API_URL}/certifications/${editingId}`
-        : `${API_URL}/certifications`;
+        ? `${API_URL}/api/certifications/${editingId}`
+        : `${API_URL}/api/certifications`;
 
       const method = editingId ? "PUT" : "POST";
 
@@ -261,7 +261,7 @@ export default function AdminCertificationsPage() {
       }
 
       const response = await fetch(
-        `${API_URL}/certifications/${id}`,
+        `${API_URL}/api/certifications/${id}`,
         {
           method: "DELETE",
           headers: {

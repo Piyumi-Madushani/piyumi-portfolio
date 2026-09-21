@@ -130,8 +130,8 @@ export default function AdminSkillsPage() {
       };
 
       const url = editingId
-        ? `${API_URL}/skills/${editingId}`
-        : `${API_URL}/skills`;
+        ? `${API_URL}/api/skills/${editingId}`
+        : `${API_URL}/api/skills`;
 
       const method = editingId ? "PUT" : "POST";
 
@@ -241,7 +241,7 @@ export default function AdminSkillsPage() {
       }
 
       const response = await fetch(
-        `${API_URL}/skills/${id}`,
+        `${API_URL}/api/skills/${id}`,
         {
           method: "DELETE",
           headers: {

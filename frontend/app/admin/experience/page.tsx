@@ -147,8 +147,8 @@ export default function AdminExperiencePage() {
       };
 
       const url = editingId
-        ? `${API_URL}/experience/${editingId}`
-        : `${API_URL}/experience`;
+        ? `${API_URL}/api/experience/${editingId}`
+        : `${API_URL}/api/experience`;
 
       const method = editingId ? "PUT" : "POST";
 
@@ -259,7 +259,7 @@ export default function AdminExperiencePage() {
       }
 
       const response = await fetch(
-        `${API_URL}/experience/${id}`,
+        `${API_URL}/api/experience/${id}`,
         {
           method: "DELETE",
           headers: {

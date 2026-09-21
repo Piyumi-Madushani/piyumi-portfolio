@@ -144,8 +144,8 @@ export default function AdminEducationPage() {
       };
 
       const url = editingId
-        ? `${API_URL}/education/${editingId}`
-        : `${API_URL}/education`;
+        ? `${API_URL}/api/education/${editingId}`
+        : `${API_URL}/api/education`;
 
       const method = editingId ? "PUT" : "POST";
 
@@ -257,7 +257,7 @@ export default function AdminEducationPage() {
       }
 
       const response = await fetch(
-        `${API_URL}/education/${id}`,
+        `${API_URL}/api/education/${id}`,
         {
           method: "DELETE",
           headers: {

@@ -56,7 +56,7 @@ if (!API_URL) {
         return;
       }
 
-      const response = await fetch(`${API_URL}/contacts`, {
+      const response = await fetch(`${API_URL}/api/contacts`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -185,7 +185,7 @@ if (!API_URL) {
     }
 
     const response = await fetch(
-      `${API_URL}/contacts/${message._id}/read`,
+      `${API_URL}/api/contacts/${message._id}/read`,
       {
         method: "PATCH",
         headers: {
