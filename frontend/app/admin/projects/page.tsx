@@ -66,7 +66,7 @@ export default function AdminProjectsPage() {
     try {
       setLoading(true);
 
-      const response = await fetch(`${API_URL}/projects`);
+      const response = await fetch(`${API_URL}/api/projects`);
 
       const result = await response.json();
 

@@ -69,7 +69,7 @@ export default function AdminEducationPage() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(`${API_URL}/education`);
+      const response = await fetch(`${API_URL}/api/education`);
 
       const result = await response.json();
 

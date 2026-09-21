@@ -72,7 +72,7 @@ export default function AdminCertificationsPage() {
       setError("");
 
       const response = await fetch(
-        `${API_URL}/certifications`
+        `${API_URL}/api/certifications`
       );
 
       const result = await response.json();

@@ -63,7 +63,7 @@ export default function AdminSkillsPage() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(`${API_URL}/skills`);
+      const response = await fetch(`${API_URL}/api/skills`);
 
       const result = await response.json();
 

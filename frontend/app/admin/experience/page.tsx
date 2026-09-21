@@ -67,7 +67,7 @@ export default function AdminExperiencePage() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(`${API_URL}/experience`);
+      const response = await fetch(`${API_URL}/api/experience`);
 
       const result = await response.json();
 
