@@ -141,8 +141,8 @@ export default function AdminProjectsPage() {
       };
 
       const url = editingId
-        ? `${API_URL}/projects/${editingId}`
-        : `${API_URL}/projects`;
+        ? `${API_URL}/api/projects/${editingId}`
+        : `${API_URL}/api/projects`;
 
       const method = editingId ? "PUT" : "POST";
 
@@ -252,7 +252,7 @@ export default function AdminProjectsPage() {
         return;
       }
 
-      const response = await fetch(`${API_URL}/projects/${id}`, {
+      const response = await fetch(`${API_URL}/api/projects/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
