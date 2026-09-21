@@ -1,6 +1,11 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 import { useRouter } from "next/navigation";
 
 interface Experience {
@@ -19,6 +24,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 if (!API_URL) {
   throw new Error("NEXT_PUBLIC_API_URL is not configured");
 }
+
 const emptyForm = {
   company: "",
   position: "",
@@ -44,7 +50,25 @@ export default function AdminExperiencePage() {
   const [success, setSuccess] = useState("");
 
   // --------------------------------
-  // Check authentication
+  // Get experiences from API
+  // --------------------------------
+
+  const getExperiences = async (): Promise<Experience[]> => {
+    const response = await fetch(`${API_URL}/api/experience`);
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        result.message || "Failed to fetch experiences"
+      );
+    }
+
+    return result.data || [];
+  };
+
+  // --------------------------------
+  // Check authentication + initial load
   // --------------------------------
 
   useEffect(() => {
@@ -55,11 +79,28 @@ export default function AdminExperiencePage() {
       return;
     }
 
-    fetchExperiences();
+    const loadExperiences = async () => {
+      try {
+        const data = await getExperiences();
+
+        setExperiences(data);
+        setError("");
+      } catch (error) {
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch experiences"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadExperiences();
   }, [router]);
 
   // --------------------------------
-  // Get all experiences
+  // Refresh experiences
   // --------------------------------
 
   const fetchExperiences = async () => {
@@ -67,17 +108,9 @@ export default function AdminExperiencePage() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(`${API_URL}/api/experience`);
+      const data = await getExperiences();
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          result.message || "Failed to fetch experiences"
-        );
-      }
-
-      setExperiences(result.data || []);
+      setExperiences(data);
     } catch (error) {
       setError(
         error instanceof Error
@@ -94,7 +127,7 @@ export default function AdminExperiencePage() {
   // --------------------------------
 
   const handleChange = (
-    event: React.ChangeEvent<
+    event: ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement
     >
   ) => {
@@ -164,7 +197,10 @@ export default function AdminExperiencePage() {
       const result = await response.json();
 
       if (!response.ok) {
-        if (response.status === 401) {
+        if (
+          response.status === 401 ||
+          response.status === 403
+        ) {
           localStorage.removeItem("adminToken");
           localStorage.removeItem("admin");
           router.replace("/admin/login");
@@ -271,7 +307,10 @@ export default function AdminExperiencePage() {
       const result = await response.json();
 
       if (!response.ok) {
-        if (response.status === 401) {
+        if (
+          response.status === 401 ||
+          response.status === 403
+        ) {
           localStorage.removeItem("adminToken");
           localStorage.removeItem("admin");
           router.replace("/admin/login");
@@ -300,6 +339,7 @@ export default function AdminExperiencePage() {
       <div className="mx-auto max-w-7xl">
 
         {/* Header */}
+
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold">
@@ -312,6 +352,7 @@ export default function AdminExperiencePage() {
           </div>
 
           <button
+            type="button"
             onClick={() => router.push("/admin")}
             className="rounded-lg border border-white/10 px-4 py-2 text-sm text-gray-300 transition hover:bg-white/10"
           >
@@ -346,6 +387,7 @@ export default function AdminExperiencePage() {
 
             {editingId && (
               <button
+                type="button"
                 onClick={handleCancelEdit}
                 className="text-sm text-gray-400 hover:text-white"
               >
@@ -605,6 +647,7 @@ Participated in testing, documentation, and project activities`}
                   <div className="flex gap-3">
 
                     <button
+                      type="button"
                       onClick={() =>
                         handleEdit(experience)
                       }
@@ -614,6 +657,7 @@ Participated in testing, documentation, and project activities`}
                     </button>
 
                     <button
+                      type="button"
                       onClick={() =>
                         handleDelete(experience._id)
                       }
@@ -636,4 +680,3 @@ Participated in testing, documentation, and project activities`}
     </main>
   );
 }
-

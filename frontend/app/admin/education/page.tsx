@@ -1,6 +1,11 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 import { useRouter } from "next/navigation";
 
 interface Education {
@@ -20,6 +25,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 if (!API_URL) {
   throw new Error("NEXT_PUBLIC_API_URL is not configured");
 }
+
 const emptyForm = {
   institution: "",
   degree: "",
@@ -46,7 +52,25 @@ export default function AdminEducationPage() {
   const [success, setSuccess] = useState("");
 
   // --------------------------------
-  // Check authentication
+  // Get education records from API
+  // --------------------------------
+
+  const getEducations = async (): Promise<Education[]> => {
+    const response = await fetch(`${API_URL}/api/education`);
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        result.message || "Failed to fetch education"
+      );
+    }
+
+    return result.data || [];
+  };
+
+  // --------------------------------
+  // Check authentication + initial load
   // --------------------------------
 
   useEffect(() => {
@@ -57,11 +81,28 @@ export default function AdminEducationPage() {
       return;
     }
 
-    fetchEducations();
+    const loadEducations = async () => {
+      try {
+        const data = await getEducations();
+
+        setEducations(data);
+        setError("");
+      } catch (error) {
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch education"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadEducations();
   }, [router]);
 
   // --------------------------------
-  // Get all education records
+  // Refresh education records
   // --------------------------------
 
   const fetchEducations = async () => {
@@ -69,17 +110,9 @@ export default function AdminEducationPage() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(`${API_URL}/api/education`);
+      const data = await getEducations();
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          result.message || "Failed to fetch education"
-        );
-      }
-
-      setEducations(result.data || []);
+      setEducations(data);
     } catch (error) {
       setError(
         error instanceof Error
@@ -96,7 +129,7 @@ export default function AdminEducationPage() {
   // --------------------------------
 
   const handleChange = (
-    event: React.ChangeEvent<
+    event: ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement
     >
   ) => {
@@ -137,7 +170,9 @@ export default function AdminEducationPage() {
         degree: formData.degree,
         field: formData.field,
         startDate: formData.startDate,
-        endDate: formData.current ? "" : formData.endDate,
+        endDate: formData.current
+          ? ""
+          : formData.endDate,
         description: formData.description,
         grade: formData.grade,
         current: formData.current,
@@ -161,9 +196,13 @@ export default function AdminEducationPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        if (response.status === 401) {
+        if (
+          response.status === 401 ||
+          response.status === 403
+        ) {
           localStorage.removeItem("adminToken");
           localStorage.removeItem("admin");
+
           router.replace("/admin/login");
           return;
         }
@@ -269,9 +308,13 @@ export default function AdminEducationPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        if (response.status === 401) {
+        if (
+          response.status === 401 ||
+          response.status === 403
+        ) {
           localStorage.removeItem("adminToken");
           localStorage.removeItem("admin");
+
           router.replace("/admin/login");
           return;
         }
@@ -311,6 +354,7 @@ export default function AdminEducationPage() {
           </div>
 
           <button
+            type="button"
             onClick={() => router.push("/admin")}
             className="rounded-lg border border-white/10 px-4 py-2 text-sm text-gray-300 transition hover:bg-white/10"
           >
@@ -345,6 +389,7 @@ export default function AdminEducationPage() {
 
             {editingId && (
               <button
+                type="button"
                 onClick={handleCancelEdit}
                 className="text-sm text-gray-400 hover:text-white"
               >
@@ -524,7 +569,9 @@ export default function AdminEducationPage() {
 
             <span className="text-sm text-gray-500">
               {educations.length} education
-              {educations.length !== 1 ? " records" : " record"}
+              {educations.length !== 1
+                ? " records"
+                : " record"}
             </span>
           </div>
 
@@ -602,6 +649,7 @@ export default function AdminEducationPage() {
                   <div className="flex gap-3">
 
                     <button
+                      type="button"
                       onClick={() =>
                         handleEdit(education)
                       }
@@ -611,6 +659,7 @@ export default function AdminEducationPage() {
                     </button>
 
                     <button
+                      type="button"
                       onClick={() =>
                         handleDelete(education._id)
                       }
@@ -633,4 +682,3 @@ export default function AdminEducationPage() {
     </main>
   );
 }
-

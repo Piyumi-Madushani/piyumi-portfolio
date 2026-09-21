@@ -26,6 +26,12 @@ interface ContactMessage {
   updatedAt: string;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+if (!API_URL) {
+  throw new Error("NEXT_PUBLIC_API_URL is not configured");
+}
+
 export default function MessagesPage() {
   const router = useRouter();
 
@@ -39,61 +45,130 @@ export default function MessagesPage() {
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  // --------------------------------
+  // Get messages from API
+  // --------------------------------
 
-if (!API_URL) {
-  throw new Error("NEXT_PUBLIC_API_URL is not configured");
-}
+  const getMessages = async (): Promise<ContactMessage[]> => {
+    const token = localStorage.getItem("adminToken");
+
+    if (!token) {
+      router.push("/admin/login");
+      throw new Error("Authentication required");
+    }
+
+    const response = await fetch(`${API_URL}/api/contacts`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      localStorage.removeItem("adminToken");
+      localStorage.removeItem("admin");
+      router.push("/admin/login");
+      throw new Error("Authentication required");
+    }
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => null);
+
+      throw new Error(
+        data?.message || "Failed to fetch messages"
+      );
+    }
+
+    const data = await response.json();
+
+    return Array.isArray(data) ? data : data.data || [];
+  };
+
+  // --------------------------------
+  // Initial authentication + load
+  // --------------------------------
+
+  useEffect(() => {
+    const token = localStorage.getItem("adminToken");
+
+    if (!token) {
+      router.push("/admin/login");
+      return;
+    }
+
+    const loadMessages = async () => {
+      try {
+        const data = await getMessages();
+
+        setMessages(data);
+        setError("");
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message === "Authentication required"
+        ) {
+          return;
+        }
+
+        console.error(error);
+
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load messages."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadMessages();
+  }, [router]);
+
+  // --------------------------------
+  // Refresh messages
+  // --------------------------------
+
   const fetchMessages = async () => {
     try {
       setLoading(true);
       setError("");
 
-      const token = localStorage.getItem("adminToken");
-
-      if (!token) {
-        router.push("/admin/login");
-        return;
-      }
-
-      const response = await fetch(`${API_URL}/api/contacts`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.status === 401 || response.status === 403) {
-        localStorage.removeItem("adminToken");
-        router.push("/admin/login");
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch messages");
-      }
-
-      const data = await response.json();
+      const data = await getMessages();
 
       setMessages(data);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load messages.");
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === "Authentication required"
+      ) {
+        return;
+      }
+
+      console.error(error);
+
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to load messages."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchMessages();
-  }, []);
+  // --------------------------------
+  // Delete message
+  // --------------------------------
 
   const handleDelete = async (id: string) => {
     const confirmed = window.confirm(
       "Are you sure you want to delete this message?"
     );
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     try {
       setDeletingId(id);
@@ -107,15 +182,19 @@ if (!API_URL) {
         return;
       }
 
-      const response = await fetch(`${API_URL}/api/contacts/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${API_URL}/api/contacts/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.status === 401 || response.status === 403) {
         localStorage.removeItem("adminToken");
+        localStorage.removeItem("admin");
         router.push("/admin/login");
         return;
       }
@@ -123,10 +202,14 @@ if (!API_URL) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to delete message");
+        throw new Error(
+          data.message || "Failed to delete message"
+        );
       }
 
-      setMessages((prev) => prev.filter((message) => message._id !== id));
+      setMessages((prev) =>
+        prev.filter((message) => message._id !== id)
+      );
 
       if (selectedMessage?._id === id) {
         setSelectedMessage(null);
@@ -137,11 +220,12 @@ if (!API_URL) {
       setTimeout(() => {
         setSuccess("");
       }, 3000);
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
+
       setError(
-        err instanceof Error
-          ? err.message
+        error instanceof Error
+          ? error.message
           : "Failed to delete message."
       );
     } finally {
@@ -149,9 +233,17 @@ if (!API_URL) {
     }
   };
 
+  // --------------------------------
+  // Unread count
+  // --------------------------------
+
   const unreadCount = useMemo(() => {
     return messages.filter((message) => !message.read).length;
   }, [messages]);
+
+  // --------------------------------
+  // Date formatting
+  // --------------------------------
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -168,72 +260,77 @@ if (!API_URL) {
     });
   };
 
- const openMessage = async (message: ContactMessage) => {
-  setSelectedMessage(message);
+  // --------------------------------
+  // Open message + mark as read
+  // --------------------------------
 
-  // Already read
-  if (message.read) {
-    return;
-  }
+  const openMessage = async (message: ContactMessage) => {
+    setSelectedMessage(message);
 
-  try {
-    const token = localStorage.getItem("adminToken");
-
-    if (!token) {
-      router.push("/admin/login");
+    if (message.read) {
       return;
     }
 
-    const response = await fetch(
-      `${API_URL}/api/contacts/${message._id}/read`,
-      {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    try {
+      const token = localStorage.getItem("adminToken");
+
+      if (!token) {
+        router.push("/admin/login");
+        return;
       }
-    );
 
-    if (response.status === 401 || response.status === 403) {
-      localStorage.removeItem("adminToken");
-      router.push("/admin/login");
-      return;
+      const response = await fetch(
+        `${API_URL}/api/contacts/${message._id}/read`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.status === 401 || response.status === 403) {
+        localStorage.removeItem("adminToken");
+        localStorage.removeItem("admin");
+        router.push("/admin/login");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to mark message as read");
+      }
+
+      setMessages((prev) =>
+        prev.map((item) =>
+          item._id === message._id
+            ? { ...item, read: true }
+            : item
+        )
+      );
+
+      setSelectedMessage((prev) =>
+        prev
+          ? {
+              ...prev,
+              read: true,
+            }
+          : null
+      );
+    } catch (error) {
+      console.error("Mark as read error:", error);
     }
-
-    if (!response.ok) {
-      throw new Error("Failed to mark message as read");
-    }
-
-    // Update the message in the list
-    setMessages((prev) =>
-      prev.map((item) =>
-        item._id === message._id
-          ? { ...item, read: true }
-          : item
-      )
-    );
-
-    // Update the currently opened message
-    setSelectedMessage((prev) =>
-      prev
-        ? {
-            ...prev,
-            read: true,
-          }
-        : null
-    );
-  } catch (err) {
-    console.error("Mark as read error:", err);
-  }
-};
+  };
 
   return (
     <div className="min-h-screen bg-[#0B0F1A] text-white">
+
       {/* Header */}
+
       <header className="border-b border-white/10 bg-[#0B0F1A]/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
           <div>
             <button
+              type="button"
               onClick={() => router.push("/admin")}
               className="mb-3 flex items-center gap-2 text-sm text-gray-400 transition hover:text-white"
             >
@@ -262,6 +359,7 @@ if (!API_URL) {
           </div>
 
           <button
+            type="button"
             onClick={fetchMessages}
             disabled={loading}
             className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-gray-300 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
@@ -276,8 +374,11 @@ if (!API_URL) {
       </header>
 
       <main className="mx-auto max-w-7xl px-6 py-8">
+
         {/* Stats */}
+
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -342,9 +443,11 @@ if (!API_URL) {
               </div>
             </div>
           </div>
+
         </div>
 
         {/* Success */}
+
         {success && (
           <div className="mb-6 rounded-xl border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm text-green-400">
             {success}
@@ -352,6 +455,7 @@ if (!API_URL) {
         )}
 
         {/* Error */}
+
         {error && (
           <div className="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
             {error}
@@ -359,7 +463,9 @@ if (!API_URL) {
         )}
 
         {/* Messages */}
+
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+
           <div className="border-b border-white/10 px-6 py-5">
             <h2 className="text-lg font-semibold">
               Contact Messages
@@ -407,9 +513,12 @@ if (!API_URL) {
                   }`}
                 >
                   <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+
                     {/* Message Info */}
+
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start gap-4">
+
                         <div className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#6C5CE7]/10 sm:flex">
                           <User
                             size={19}
@@ -418,6 +527,7 @@ if (!API_URL) {
                         </div>
 
                         <div className="min-w-0 flex-1">
+
                           <div className="flex flex-wrap items-center gap-2">
                             <h3
                               className={`font-semibold ${
@@ -441,8 +551,7 @@ if (!API_URL) {
                           </p>
 
                           <p className="mt-2 text-sm font-medium text-gray-300">
-                            {message.subject ||
-                              "No subject"}
+                            {message.subject || "No subject"}
                           </p>
 
                           <p className="mt-1 line-clamp-2 text-sm text-gray-500">
@@ -459,13 +568,16 @@ if (!API_URL) {
                               {formatTime(message.createdAt)}
                             </span>
                           </div>
+
                         </div>
                       </div>
                     </div>
 
                     {/* Actions */}
+
                     <div className="flex shrink-0 items-center gap-2">
                       <button
+                        type="button"
                         onClick={() => openMessage(message)}
                         className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-gray-300 transition hover:bg-white/10 hover:text-white"
                       >
@@ -474,6 +586,7 @@ if (!API_URL) {
                       </button>
 
                       <button
+                        type="button"
                         onClick={() =>
                           handleDelete(message._id)
                         }
@@ -491,19 +604,25 @@ if (!API_URL) {
                         Delete
                       </button>
                     </div>
+
                   </div>
                 </div>
               ))}
             </div>
           )}
+
         </div>
       </main>
 
       {/* Message Modal */}
+
       {selectedMessage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+
           <div className="max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-2xl border border-white/10 bg-[#111625] shadow-2xl">
+
             {/* Modal Header */}
+
             <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
               <div>
                 <p className="text-sm text-gray-400">
@@ -511,12 +630,12 @@ if (!API_URL) {
                 </p>
 
                 <h2 className="mt-1 text-xl font-bold">
-                  {selectedMessage.subject ||
-                    "No subject"}
+                  {selectedMessage.subject || "No subject"}
                 </h2>
               </div>
 
               <button
+                type="button"
                 onClick={() => setSelectedMessage(null)}
                 className="rounded-lg p-2 text-gray-400 transition hover:bg-white/10 hover:text-white"
               >
@@ -525,10 +644,14 @@ if (!API_URL) {
             </div>
 
             {/* Modal Content */}
+
             <div className="max-h-[65vh] overflow-y-auto px-6 py-6">
+
               {/* Sender */}
+
               <div className="mb-6 rounded-xl border border-white/10 bg-white/[0.03] p-4">
                 <div className="flex items-center gap-3">
+
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#6C5CE7]/15">
                     <User
                       size={18}
@@ -548,10 +671,12 @@ if (!API_URL) {
                       {selectedMessage.email}
                     </a>
                   </div>
+
                 </div>
               </div>
 
               {/* Date */}
+
               <div className="mb-6 flex flex-wrap gap-4 text-sm text-gray-400">
                 <span className="flex items-center gap-2">
                   <Calendar size={16} />
@@ -576,6 +701,7 @@ if (!API_URL) {
               </div>
 
               {/* Message */}
+
               <div>
                 <div className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
                   <MessageSquare size={16} />
@@ -586,10 +712,13 @@ if (!API_URL) {
                   {selectedMessage.message}
                 </div>
               </div>
+
             </div>
 
             {/* Modal Footer */}
+
             <div className="flex justify-end gap-3 border-t border-white/10 px-6 py-4">
+
               <a
                 href={`mailto:${selectedMessage.email}?subject=Re: ${
                   selectedMessage.subject || "Your message"
@@ -601,15 +730,19 @@ if (!API_URL) {
               </a>
 
               <button
+                type="button"
                 onClick={() => setSelectedMessage(null)}
                 className="rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-gray-300 transition hover:bg-white/10 hover:text-white"
               >
                 Close
               </button>
+
             </div>
+
           </div>
         </div>
       )}
+
     </div>
   );
 }

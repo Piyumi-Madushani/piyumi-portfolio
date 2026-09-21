@@ -93,14 +93,14 @@ export default function Projects() {
             </p>
 
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-              Things I've{" "}
+              Things I&apos;ve{" "}
               <span className="bg-gradient-to-r from-[#6c5ce7] to-[#00c2ff] bg-clip-text text-transparent">
                 built.
               </span>
             </h2>
 
             <p className="mt-5 text-sm leading-6 text-slate-400 sm:mt-6 sm:text-base sm:leading-7 lg:text-lg">
-              A selection of applications and systems I've worked on across
+              A selection of applications and systems I&apos;ve worked on across
               software engineering, AI, backend development, mobile
               applications, and project-based work.
             </p>

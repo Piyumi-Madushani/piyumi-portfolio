@@ -1,6 +1,11 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import {
+  FormEvent,
+  useEffect,
+  useState,
+  type ChangeEvent,
+} from "react";
 import { useRouter } from "next/navigation";
 
 interface Skill {
@@ -17,6 +22,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 if (!API_URL) {
   throw new Error("NEXT_PUBLIC_API_URL is not configured");
 }
+
 const emptyForm = {
   name: "",
   category: "",
@@ -40,7 +46,25 @@ export default function AdminSkillsPage() {
   const [success, setSuccess] = useState("");
 
   // --------------------------------
-  // Check authentication
+  // Get all skills from API
+  // --------------------------------
+
+  const getSkills = async (): Promise<Skill[]> => {
+    const response = await fetch(`${API_URL}/api/skills`);
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        result.message || "Failed to fetch skills"
+      );
+    }
+
+    return result.data || [];
+  };
+
+  // --------------------------------
+  // Check authentication + initial load
   // --------------------------------
 
   useEffect(() => {
@@ -51,11 +75,28 @@ export default function AdminSkillsPage() {
       return;
     }
 
-    fetchSkills();
+    const loadSkills = async () => {
+      try {
+        const data = await getSkills();
+
+        setSkills(data);
+        setError("");
+      } catch (error) {
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch skills"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadSkills();
   }, [router]);
 
   // --------------------------------
-  // Get all skills
+  // Refresh skills
   // --------------------------------
 
   const fetchSkills = async () => {
@@ -63,17 +104,9 @@ export default function AdminSkillsPage() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(`${API_URL}/api/skills`);
+      const data = await getSkills();
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          result.message || "Failed to fetch skills"
-        );
-      }
-
-      setSkills(result.data || []);
+      setSkills(data);
     } catch (error) {
       setError(
         error instanceof Error
@@ -90,13 +123,16 @@ export default function AdminSkillsPage() {
   // --------------------------------
 
   const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: ChangeEvent<HTMLInputElement>
   ) => {
     const { name, value } = event.target;
 
     setFormData((previous) => ({
       ...previous,
-      [name]: name === "order" ? Number(value) : value,
+      [name]:
+        name === "order"
+          ? Number(value)
+          : value,
     }));
   };
 
@@ -147,9 +183,13 @@ export default function AdminSkillsPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        if (response.status === 401) {
+        if (
+          response.status === 401 ||
+          response.status === 403
+        ) {
           localStorage.removeItem("adminToken");
           localStorage.removeItem("admin");
+          localStorage.removeItem("adminUser");
 
           router.replace("/admin/login");
           return;
@@ -253,9 +293,13 @@ export default function AdminSkillsPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        if (response.status === 401) {
+        if (
+          response.status === 401 ||
+          response.status === 403
+        ) {
           localStorage.removeItem("adminToken");
           localStorage.removeItem("admin");
+          localStorage.removeItem("adminUser");
 
           router.replace("/admin/login");
           return;
@@ -283,7 +327,9 @@ export default function AdminSkillsPage() {
   // --------------------------------
 
   const categories = Array.from(
-    new Set(skills.map((skill) => skill.category))
+    new Set(
+      skills.map((skill) => skill.category)
+    )
   );
 
   return (
@@ -304,6 +350,7 @@ export default function AdminSkillsPage() {
           </div>
 
           <button
+            type="button"
             onClick={() => router.push("/admin")}
             className="rounded-lg border border-white/10 px-4 py-2 text-sm text-gray-300 transition hover:bg-white/10"
           >
@@ -478,7 +525,9 @@ export default function AdminSkillsPage() {
                 {skills.length !== 1 ? "s" : ""}
                 {" · "}
                 {categories.length} categor
-                {categories.length !== 1 ? "ies" : "y"}
+                {categories.length !== 1
+                  ? "ies"
+                  : "y"}
               </p>
             </div>
           </div>
@@ -495,7 +544,6 @@ export default function AdminSkillsPage() {
             <div className="space-y-8">
 
               {categories.map((category) => {
-
                 const categorySkills = skills.filter(
                   (skill) =>
                     skill.category === category

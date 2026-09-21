@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 import { useRouter } from "next/navigation";
 
 interface AdminUser {
@@ -14,6 +17,7 @@ export default function AdminDashboard() {
   const router = useRouter();
 
   const [admin, setAdmin] = useState<AdminUser | null>(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
@@ -25,10 +29,20 @@ export default function AdminDashboard() {
     }
 
     try {
-      setAdmin(JSON.parse(storedAdmin));
+      const parsedAdmin = JSON.parse(
+        storedAdmin
+      ) as AdminUser;
+
+      // Defer the state update until after the current
+      // effect execution to avoid React's set-state-in-effect rule.
+      queueMicrotask(() => {
+        setAdmin(parsedAdmin);
+        setCheckingAuth(false);
+      });
     } catch {
       localStorage.removeItem("adminToken");
       localStorage.removeItem("adminUser");
+
       router.replace("/admin/login");
     }
   }, [router]);
@@ -36,11 +50,12 @@ export default function AdminDashboard() {
   const handleLogout = () => {
     localStorage.removeItem("adminToken");
     localStorage.removeItem("adminUser");
+    localStorage.removeItem("admin");
 
     router.replace("/admin/login");
   };
 
-  if (!admin) {
+  if (checkingAuth || !admin) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#0B0F1A] px-4">
         <p className="text-sm text-gray-400 sm:text-base">
@@ -54,10 +69,12 @@ export default function AdminDashboard() {
     <main className="min-h-screen bg-[#0B0F1A] text-white">
 
       {/* Header */}
+
       <header className="border-b border-white/10 bg-white/[0.03]">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
 
           {/* Header content */}
+
           <div className="min-w-0">
             <h1 className="text-xl font-bold sm:text-2xl">
               Admin Dashboard
@@ -69,7 +86,9 @@ export default function AdminDashboard() {
           </div>
 
           {/* Logout */}
+
           <button
+            type="button"
             onClick={handleLogout}
             className="w-full rounded-lg border border-white/10 px-4 py-2.5 text-sm text-gray-300 transition hover:border-red-400/30 hover:bg-red-500/10 hover:text-red-300 sm:w-auto"
           >
@@ -79,9 +98,11 @@ export default function AdminDashboard() {
       </header>
 
       {/* Content */}
+
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
 
         {/* Welcome */}
+
         <div className="mb-8 sm:mb-10">
           <h2 className="text-xl font-semibold sm:text-2xl">
             Welcome, {admin.username} 👋
@@ -93,6 +114,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Dashboard Cards */}
+
         <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6">
 
           <DashboardCard

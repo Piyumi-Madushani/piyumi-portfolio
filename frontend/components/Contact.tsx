@@ -99,14 +99,14 @@ export default function Contact() {
           </p>
 
           <h2 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
-            Let's build something{" "}
+            Let&apos;s build something{" "}
             <span className="bg-gradient-to-r from-[#6c5ce7] to-[#00c2ff] bg-clip-text text-transparent">
               meaningful.
             </span>
           </h2>
 
           <p className="mt-5 text-sm leading-6 text-slate-400 sm:mt-6 sm:text-base sm:leading-7 lg:text-lg">
-            I'm open to software engineering opportunities, project-based
+            I&apos;m open to software engineering opportunities, project-based
             work, internships, and opportunities to contribute to
             technology-driven teams.
           </p>
@@ -124,7 +124,7 @@ export default function Contact() {
             </div>
 
             <h3 className="text-xl font-semibold sm:text-2xl">
-              Let's talk
+              Let&apos;s talk
             </h3>
 
             <p className="mt-3 text-sm leading-6 text-slate-500 sm:mt-4 sm:text-base sm:leading-7">

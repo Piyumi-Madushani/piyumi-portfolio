@@ -1,6 +1,11 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 import { useRouter } from "next/navigation";
 
 interface Certification {
@@ -48,7 +53,27 @@ export default function AdminCertificationsPage() {
   const [success, setSuccess] = useState("");
 
   // --------------------------------
-  // Check authentication
+  // Fetch certifications from API
+  // --------------------------------
+
+  const getCertifications = async (): Promise<Certification[]> => {
+    const response = await fetch(
+      `${API_URL}/api/certifications`
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        result.message || "Failed to fetch certifications"
+      );
+    }
+
+    return result.data || [];
+  };
+
+  // --------------------------------
+  // Initial authentication + loading
   // --------------------------------
 
   useEffect(() => {
@@ -59,11 +84,28 @@ export default function AdminCertificationsPage() {
       return;
     }
 
-    fetchCertifications();
+    const loadCertifications = async () => {
+      try {
+        const data = await getCertifications();
+
+        setCertifications(data);
+        setError("");
+      } catch (error) {
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch certifications"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadCertifications();
   }, [router]);
 
   // --------------------------------
-  // Get all certifications
+  // Refresh certifications
   // --------------------------------
 
   const fetchCertifications = async () => {
@@ -71,20 +113,9 @@ export default function AdminCertificationsPage() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(
-        `${API_URL}/api/certifications`
-      );
+      const data = await getCertifications();
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          result.message ||
-            "Failed to fetch certifications"
-        );
-      }
-
-      setCertifications(result.data || []);
+      setCertifications(data);
     } catch (error) {
       setError(
         error instanceof Error
@@ -101,7 +132,7 @@ export default function AdminCertificationsPage() {
   // --------------------------------
 
   const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: ChangeEvent<HTMLInputElement>
   ) => {
     const { name, value } = event.target;
 
@@ -160,7 +191,10 @@ export default function AdminCertificationsPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        if (response.status === 401) {
+        if (
+          response.status === 401 ||
+          response.status === 403
+        ) {
           localStorage.removeItem("adminToken");
           localStorage.removeItem("admin");
 
@@ -169,8 +203,7 @@ export default function AdminCertificationsPage() {
         }
 
         throw new Error(
-          result.message ||
-            "Failed to save certification"
+          result.message || "Failed to save certification"
         );
       }
 
@@ -273,7 +306,10 @@ export default function AdminCertificationsPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        if (response.status === 401) {
+        if (
+          response.status === 401 ||
+          response.status === 403
+        ) {
           localStorage.removeItem("adminToken");
           localStorage.removeItem("admin");
 
@@ -553,9 +589,7 @@ export default function AdminCertificationsPage() {
                       <div className="mb-5 overflow-hidden rounded-xl border border-white/10 bg-black/20">
                         <img
                           src={certification.image}
-                          alt={
-                            certification.title
-                          }
+                          alt={certification.title}
                           className="h-48 w-full object-cover"
                         />
                       </div>
@@ -612,9 +646,7 @@ export default function AdminCertificationsPage() {
                           </span>
 
                           <span className="ml-2 break-all text-gray-300">
-                            {
-                              certification.credentialId
-                            }
+                            {certification.credentialId}
                           </span>
                         </div>
                       )}
@@ -643,9 +675,7 @@ export default function AdminCertificationsPage() {
                       <button
                         type="button"
                         onClick={() =>
-                          handleEdit(
-                            certification
-                          )
+                          handleEdit(certification)
                         }
                         className="flex-1 rounded-lg border border-white/10 px-3 py-2 text-sm transition hover:bg-white/10"
                       >

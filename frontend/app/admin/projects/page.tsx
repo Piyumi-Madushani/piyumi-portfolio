@@ -1,17 +1,22 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import {
+  FormEvent,
+  useEffect,
+  useState,
+  type ChangeEvent,
+} from "react";
 import { useRouter } from "next/navigation";
 
-interface Project {
+interface Experience {
   _id: string;
-  title: string;
-  description: string;
-  image?: string;
+  company: string;
+  position: string;
+  startDate: string;
+  endDate?: string;
+  description: string[];
   technologies: string[];
-  githubUrl?: string;
-  liveUrl?: string;
-  featured: boolean;
+  current: boolean;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -19,20 +24,21 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 if (!API_URL) {
   throw new Error("NEXT_PUBLIC_API_URL is not configured");
 }
+
 const emptyForm = {
-  title: "",
+  company: "",
+  position: "",
+  startDate: "",
+  endDate: "",
   description: "",
-  image: "",
   technologies: "",
-  githubUrl: "",
-  liveUrl: "",
-  featured: false,
+  current: false,
 };
 
-export default function AdminProjectsPage() {
+export default function AdminExperiencePage() {
   const router = useRouter();
 
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [experiences, setExperiences] = useState<Experience[]>([]);
   const [formData, setFormData] = useState(emptyForm);
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -44,7 +50,25 @@ export default function AdminProjectsPage() {
   const [success, setSuccess] = useState("");
 
   // --------------------------------
-  // Check authentication
+  // Get all experiences from API
+  // --------------------------------
+
+  const getExperiences = async (): Promise<Experience[]> => {
+    const response = await fetch(`${API_URL}/api/experience`);
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        result.message || "Failed to fetch experiences"
+      );
+    }
+
+    return result.data || [];
+  };
+
+  // --------------------------------
+  // Check authentication + initial load
   // --------------------------------
 
   useEffect(() => {
@@ -55,31 +79,43 @@ export default function AdminProjectsPage() {
       return;
     }
 
-    fetchProjects();
+    const loadExperiences = async () => {
+      try {
+        const data = await getExperiences();
+
+        setExperiences(data);
+        setError("");
+      } catch (error) {
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch experiences"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadExperiences();
   }, [router]);
 
   // --------------------------------
-  // Get all projects
+  // Refresh experiences
   // --------------------------------
 
-  const fetchProjects = async () => {
+  const fetchExperiences = async () => {
     try {
       setLoading(true);
+      setError("");
 
-      const response = await fetch(`${API_URL}/api/projects`);
+      const data = await getExperiences();
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to fetch projects");
-      }
-
-      setProjects(result.data || []);
+      setExperiences(data);
     } catch (error) {
       setError(
         error instanceof Error
           ? error.message
-          : "Failed to fetch projects"
+          : "Failed to fetch experiences"
       );
     } finally {
       setLoading(false);
@@ -91,7 +127,7 @@ export default function AdminProjectsPage() {
   // --------------------------------
 
   const handleChange = (
-    event: React.ChangeEvent<
+    event: ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement
     >
   ) => {
@@ -107,7 +143,7 @@ export default function AdminProjectsPage() {
   };
 
   // --------------------------------
-  // Add / Update project
+  // Add / Update experience
   // --------------------------------
 
   const handleSubmit = async (
@@ -127,22 +163,25 @@ export default function AdminProjectsPage() {
         return;
       }
 
-      const projectData = {
-        title: formData.title,
-        description: formData.description,
-        image: formData.image,
+      const experienceData = {
+        company: formData.company,
+        position: formData.position,
+        startDate: formData.startDate,
+        endDate: formData.current ? "" : formData.endDate,
+        description: formData.description
+          .split("\n")
+          .map((item) => item.trim())
+          .filter(Boolean),
         technologies: formData.technologies
           .split(",")
           .map((technology) => technology.trim())
           .filter(Boolean),
-        githubUrl: formData.githubUrl,
-        liveUrl: formData.liveUrl,
-        featured: formData.featured,
+        current: formData.current,
       };
 
       const url = editingId
-        ? `${API_URL}/api/projects/${editingId}`
-        : `${API_URL}/api/projects`;
+        ? `${API_URL}/api/experience/${editingId}`
+        : `${API_URL}/api/experience`;
 
       const method = editingId ? "PUT" : "POST";
 
@@ -152,39 +191,44 @@ export default function AdminProjectsPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(projectData),
+        body: JSON.stringify(experienceData),
       });
 
       const result = await response.json();
 
       if (!response.ok) {
-        if (response.status === 401) {
+        if (
+          response.status === 401 ||
+          response.status === 403
+        ) {
           localStorage.removeItem("adminToken");
+          localStorage.removeItem("admin");
           localStorage.removeItem("adminUser");
+
           router.replace("/admin/login");
           return;
         }
 
         throw new Error(
-          result.message || "Failed to save project"
+          result.message || "Failed to save experience"
         );
       }
 
       setSuccess(
         editingId
-          ? "Project updated successfully."
-          : "Project created successfully."
+          ? "Experience updated successfully."
+          : "Experience created successfully."
       );
 
       setFormData(emptyForm);
       setEditingId(null);
 
-      await fetchProjects();
+      await fetchExperiences();
     } catch (error) {
       setError(
         error instanceof Error
           ? error.message
-          : "Failed to save project"
+          : "Failed to save experience"
       );
     } finally {
       setSaving(false);
@@ -192,20 +236,20 @@ export default function AdminProjectsPage() {
   };
 
   // --------------------------------
-  // Edit project
+  // Edit experience
   // --------------------------------
 
-  const handleEdit = (project: Project) => {
-    setEditingId(project._id);
+  const handleEdit = (experience: Experience) => {
+    setEditingId(experience._id);
 
     setFormData({
-      title: project.title,
-      description: project.description,
-      image: project.image || "",
-      technologies: project.technologies.join(", "),
-      githubUrl: project.githubUrl || "",
-      liveUrl: project.liveUrl || "",
-      featured: project.featured,
+      company: experience.company,
+      position: experience.position,
+      startDate: experience.startDate,
+      endDate: experience.endDate || "",
+      description: experience.description.join("\n"),
+      technologies: experience.technologies.join(", "),
+      current: experience.current,
     });
 
     setSuccess("");
@@ -229,12 +273,12 @@ export default function AdminProjectsPage() {
   };
 
   // --------------------------------
-  // Delete project
+  // Delete experience
   // --------------------------------
 
   const handleDelete = async (id: string) => {
     const confirmed = window.confirm(
-      "Are you sure you want to delete this project?"
+      "Are you sure you want to delete this experience?"
     );
 
     if (!confirmed) {
@@ -252,36 +296,44 @@ export default function AdminProjectsPage() {
         return;
       }
 
-      const response = await fetch(`${API_URL}/api/projects/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${API_URL}/api/experience/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       const result = await response.json();
 
       if (!response.ok) {
-        if (response.status === 401) {
+        if (
+          response.status === 401 ||
+          response.status === 403
+        ) {
           localStorage.removeItem("adminToken");
+          localStorage.removeItem("admin");
           localStorage.removeItem("adminUser");
+
           router.replace("/admin/login");
           return;
         }
 
         throw new Error(
-          result.message || "Failed to delete project"
+          result.message || "Failed to delete experience"
         );
       }
 
-      setSuccess("Project deleted successfully.");
+      setSuccess("Experience deleted successfully.");
 
-      await fetchProjects();
+      await fetchExperiences();
     } catch (error) {
       setError(
         error instanceof Error
           ? error.message
-          : "Failed to delete project"
+          : "Failed to delete experience"
       );
     }
   };
@@ -290,18 +342,20 @@ export default function AdminProjectsPage() {
     <main className="min-h-screen bg-[#0B0F1A] px-4 py-8 text-white">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
+
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold">
-              Manage Projects
+              Manage Experience
             </h1>
 
             <p className="mt-2 text-gray-400">
-              Add, edit, and manage your portfolio projects.
+              Add, edit, and manage your professional experience.
             </p>
           </div>
 
           <button
+            type="button"
             onClick={() => router.push("/admin")}
             className="rounded-lg border border-white/10 px-4 py-2 text-sm text-gray-300 transition hover:bg-white/10"
           >
@@ -310,6 +364,7 @@ export default function AdminProjectsPage() {
         </div>
 
         {/* Messages */}
+
         {error && (
           <div className="mb-6 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
             {error}
@@ -323,14 +378,18 @@ export default function AdminProjectsPage() {
         )}
 
         {/* Form */}
+
         <section className="mb-10 rounded-2xl border border-white/10 bg-white/5 p-6">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-xl font-semibold">
-              {editingId ? "Edit Project" : "Add New Project"}
+              {editingId
+                ? "Edit Experience"
+                : "Add New Experience"}
             </h2>
 
             {editingId && (
               <button
+                type="button"
                 onClick={handleCancelEdit}
                 className="text-sm text-gray-400 hover:text-white"
               >
@@ -343,38 +402,94 @@ export default function AdminProjectsPage() {
             onSubmit={handleSubmit}
             className="grid gap-5 md:grid-cols-2"
           >
-            {/* Title */}
+            {/* Company */}
+
             <div>
               <label className="mb-2 block text-sm text-gray-300">
-                Project Title
+                Company
               </label>
 
               <input
-                name="title"
-                value={formData.title}
+                name="company"
+                value={formData.company}
                 onChange={handleChange}
                 required
-                placeholder="OpenJustice"
+                placeholder="ClanCode Labs"
                 className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#6C5CE7]"
               />
             </div>
 
-            {/* Image */}
+            {/* Position */}
+
             <div>
               <label className="mb-2 block text-sm text-gray-300">
-                Image URL
+                Position
               </label>
 
               <input
-                name="image"
-                value={formData.image}
+                name="position"
+                value={formData.position}
                 onChange={handleChange}
-                placeholder="https://..."
+                required
+                placeholder="Intern Software Engineer"
                 className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#6C5CE7]"
               />
+            </div>
+
+            {/* Start Date */}
+
+            <div>
+              <label className="mb-2 block text-sm text-gray-300">
+                Start Date
+              </label>
+
+              <input
+                name="startDate"
+                value={formData.startDate}
+                onChange={handleChange}
+                required
+                placeholder="Jun 2025"
+                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#6C5CE7]"
+              />
+            </div>
+
+            {/* End Date */}
+
+            <div>
+              <label className="mb-2 block text-sm text-gray-300">
+                End Date
+              </label>
+
+              <input
+                name="endDate"
+                value={formData.endDate}
+                onChange={handleChange}
+                disabled={formData.current}
+                placeholder="Oct 2025"
+                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#6C5CE7] disabled:cursor-not-allowed disabled:opacity-40"
+              />
+            </div>
+
+            {/* Current */}
+
+            <div className="md:col-span-2">
+              <label className="flex cursor-pointer items-center gap-3">
+                <input
+                  type="checkbox"
+                  name="current"
+                  checked={formData.current}
+                  onChange={handleChange}
+                  className="h-4 w-4"
+                />
+
+                <span className="text-sm text-gray-300">
+                  Currently working here
+                </span>
+              </label>
             </div>
 
             {/* Description */}
+
             <div className="md:col-span-2">
               <label className="mb-2 block text-sm text-gray-300">
                 Description
@@ -385,13 +500,20 @@ export default function AdminProjectsPage() {
                 value={formData.description}
                 onChange={handleChange}
                 required
-                rows={4}
-                placeholder="Describe your project..."
+                rows={6}
+                placeholder={`Supported software project development and coordination
+Worked with Node.js, TypeScript, React, and MongoDB
+Participated in testing, documentation, and project activities`}
                 className="w-full resize-none rounded-lg border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#6C5CE7]"
               />
+
+              <p className="mt-2 text-xs text-gray-500">
+                Enter each description point on a new line.
+              </p>
             </div>
 
             {/* Technologies */}
+
             <div className="md:col-span-2">
               <label className="mb-2 block text-sm text-gray-300">
                 Technologies
@@ -401,7 +523,7 @@ export default function AdminProjectsPage() {
                 name="technologies"
                 value={formData.technologies}
                 onChange={handleChange}
-                placeholder="React, Node.js, MongoDB, TypeScript"
+                placeholder="Node.js, TypeScript, React, MongoDB"
                 className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#6C5CE7]"
               />
 
@@ -410,54 +532,8 @@ export default function AdminProjectsPage() {
               </p>
             </div>
 
-            {/* GitHub */}
-            <div>
-              <label className="mb-2 block text-sm text-gray-300">
-                GitHub URL
-              </label>
-
-              <input
-                name="githubUrl"
-                value={formData.githubUrl}
-                onChange={handleChange}
-                placeholder="https://github.com/..."
-                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#6C5CE7]"
-              />
-            </div>
-
-            {/* Live URL */}
-            <div>
-              <label className="mb-2 block text-sm text-gray-300">
-                Live URL
-              </label>
-
-              <input
-                name="liveUrl"
-                value={formData.liveUrl}
-                onChange={handleChange}
-                placeholder="https://..."
-                className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#6C5CE7]"
-              />
-            </div>
-
-            {/* Featured */}
-            <div className="md:col-span-2">
-              <label className="flex cursor-pointer items-center gap-3">
-                <input
-                  type="checkbox"
-                  name="featured"
-                  checked={formData.featured}
-                  onChange={handleChange}
-                  className="h-4 w-4"
-                />
-
-                <span className="text-sm text-gray-300">
-                  ⭐ Featured project
-                </span>
-              </label>
-            </div>
-
             {/* Submit */}
+
             <div className="md:col-span-2">
               <button
                 type="submit"
@@ -467,78 +543,118 @@ export default function AdminProjectsPage() {
                 {saving
                   ? "Saving..."
                   : editingId
-                    ? "Update Project"
-                    : "Add Project"}
+                    ? "Update Experience"
+                    : "Add Experience"}
               </button>
             </div>
           </form>
         </section>
 
-        {/* Project List */}
+        {/* Experience List */}
+
         <section>
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-xl font-semibold">
-              Existing Projects
+              Existing Experience
             </h2>
 
             <span className="text-sm text-gray-500">
-              {projects.length} project
-              {projects.length !== 1 ? "s" : ""}
+              {experiences.length} experience
+              {experiences.length !== 1 ? "s" : ""}
             </span>
           </div>
 
           {loading ? (
             <p className="text-gray-400">
-              Loading projects...
+              Loading experience...
             </p>
-          ) : projects.length === 0 ? (
+          ) : experiences.length === 0 ? (
             <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center text-gray-400">
-              No projects found.
+              No experience records found.
             </div>
           ) : (
-            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {projects.map((project) => (
+            <div className="space-y-5">
+              {experiences.map((experience) => (
                 <article
-                  key={project._id}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-5"
+                  key={experience._id}
+                  className="rounded-2xl border border-white/10 bg-white/5 p-6"
                 >
-                  <div className="mb-4 flex items-start justify-between gap-3">
-                    <h3 className="text-lg font-semibold">
-                      {project.title}
-                    </h3>
+                  {/* Header */}
 
-                    {project.featured && (
-                      <span className="rounded-full bg-yellow-500/10 px-2 py-1 text-xs text-yellow-400">
-                        ⭐ Featured
-                      </span>
-                    )}
+                  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <h3 className="text-xl font-semibold">
+                        {experience.position}
+                      </h3>
+
+                      <p className="mt-1 text-[#6C5CE7]">
+                        {experience.company}
+                      </p>
+                    </div>
+
+                    <span className="w-fit rounded-full bg-white/5 px-3 py-1 text-xs text-gray-400">
+                      {experience.startDate}
+                      {" — "}
+                      {experience.current
+                        ? "Present"
+                        : experience.endDate || "Present"}
+                    </span>
                   </div>
 
-                  <p className="mb-4 line-clamp-3 text-sm leading-6 text-gray-400">
-                    {project.description}
-                  </p>
+                  {/* Description */}
 
-                  <div className="mb-5 flex flex-wrap gap-2">
-                    {project.technologies.map((technology) => (
-                      <span
-                        key={technology}
-                        className="rounded-full bg-[#6C5CE7]/10 px-2.5 py-1 text-xs text-[#b4adff]"
-                      >
-                        {technology}
-                      </span>
-                    ))}
-                  </div>
+                  {experience.description.length > 0 && (
+                    <ul className="mb-5 space-y-2">
+                      {experience.description.map(
+                        (item, index) => (
+                          <li
+                            key={`${experience._id}-description-${index}`}
+                            className="flex gap-3 text-sm leading-6 text-gray-400"
+                          >
+                            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#6C5CE7]" />
+
+                            <span>{item}</span>
+                          </li>
+                        )
+                      )}
+                    </ul>
+                  )}
+
+                  {/* Technologies */}
+
+                  {experience.technologies.length > 0 && (
+                    <div className="mb-5 flex flex-wrap gap-2">
+                      {experience.technologies.map(
+                        (technology) => (
+                          <span
+                            key={technology}
+                            className="rounded-full bg-[#6C5CE7]/10 px-2.5 py-1 text-xs text-[#b4adff]"
+                          >
+                            {technology}
+                          </span>
+                        )
+                      )}
+                    </div>
+                  )}
+
+                  {/* Actions */}
 
                   <div className="flex gap-3">
                     <button
-                      onClick={() => handleEdit(project)}
+                      type="button"
+                      onClick={() =>
+                        handleEdit(experience)
+                      }
                       className="flex-1 rounded-lg border border-white/10 px-3 py-2 text-sm transition hover:bg-white/10"
                     >
                       Edit
                     </button>
 
                     <button
-                      onClick={() => handleDelete(project._id)}
+                      type="button"
+                      onClick={() =>
+                        handleDelete(experience._id)
+                      }
                       className="flex-1 rounded-lg border border-red-500/20 px-3 py-2 text-sm text-red-400 transition hover:bg-red-500/10"
                     >
                       Delete

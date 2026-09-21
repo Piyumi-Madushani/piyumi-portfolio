@@ -57,7 +57,7 @@ export default function About() {
           {/* About text */}
           <div>
             <p className="text-lg leading-8 text-slate-300">
-              I'm Piyumi Madushani, an Information and Communication
+              I&apos;m Piyumi Madushani, an Information and Communication
               Technology undergraduate at Uva Wellassa University with a
               strong interest in software engineering and project management.
             </p>
