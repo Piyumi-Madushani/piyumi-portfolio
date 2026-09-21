@@ -8,12 +8,34 @@ export const registerAdmin = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { username, email, password } = req.body;
+    const username =
+      typeof req.body.username === "string"
+        ? req.body.username.trim()
+        : "";
+
+    const email =
+      typeof req.body.email === "string"
+        ? req.body.email.trim().toLowerCase()
+        : "";
+
+    const password =
+      typeof req.body.password === "string"
+        ? req.body.password
+        : "";
 
     if (!username || !email || !password) {
       res.status(400).json({
         success: false,
         message: "Username, email, and password are required.",
+      });
+
+      return;
+    }
+
+    if (password.length < 8) {
+      res.status(400).json({
+        success: false,
+        message: "Password must be at least 8 characters long.",
       });
 
       return;
@@ -64,7 +86,15 @@ export const loginAdmin = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const email =
+      typeof req.body.email === "string"
+        ? req.body.email.trim().toLowerCase()
+        : "";
+
+    const password =
+      typeof req.body.password === "string"
+        ? req.body.password
+        : "";
 
     if (!email || !password) {
       res.status(400).json({
@@ -75,9 +105,7 @@ export const loginAdmin = async (
       return;
     }
 
-    const admin = await Admin.findOne({
-      email: email.toLowerCase(),
-    });
+    const admin = await Admin.findOne({ email });
 
     if (!admin) {
       res.status(401).json({

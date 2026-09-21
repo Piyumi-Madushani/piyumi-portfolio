@@ -5,6 +5,8 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 interface JwtPayload {
   adminId: string;
+  iat?: number;
+  exp?: number;
 }
 
 export const protect = (
@@ -42,7 +44,7 @@ export const protect = (
       return;
     }
 
-    const token = authorization.split(" ")[1];
+    const token = authorization.slice(7).trim();
 
     if (!token) {
       res.status(401).json({
@@ -53,9 +55,27 @@ export const protect = (
       return;
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    const decoded = jwt.verify(token, JWT_SECRET, {
+      algorithms: ["HS256"],
+    });
 
-    req.adminId = decoded.adminId;
+    if (
+      typeof decoded !== "object" ||
+      decoded === null ||
+      typeof decoded.adminId !== "string" ||
+      !decoded.adminId
+    ) {
+      res.status(401).json({
+        success: false,
+        message: "Invalid authentication token.",
+      });
+
+      return;
+    }
+
+    const payload = decoded as JwtPayload;
+
+    req.adminId = payload.adminId;
 
     next();
   } catch (error) {

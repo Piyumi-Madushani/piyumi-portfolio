@@ -8,10 +8,11 @@ import {
 } from "../controllers/contact.controller.js";
 
 import { protect } from "../middleware/auth.middleware.js";
+import { contactRateLimiter } from "../middleware/rate-limit.middleware.js";
 
 const router = Router();
 
-router.post("/", createContact);
+router.post("/", contactRateLimiter, createContact);
 
 router.get("/", protect, getContacts);
 

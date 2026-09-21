@@ -11,35 +11,39 @@ import projectRoutes from "./routes/project.routes.js";
 
 const app = express();
 
+const allowedOrigins = (process.env.CORS_ORIGINS ?? "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests without an origin
+      // Allow requests without an Origin header
+      // (for example Postman, curl, server-to-server requests).
       if (!origin) {
         return callback(null, true);
       }
 
-      // Allow production Vercel domain
-      if (origin === "https://piyumi-portfolio.vercel.app") {
+      if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      // Allow Vercel preview deployments
-      if (
-        /^https:\/\/piyumi-portfolio-[a-z0-9]+-piyumi-madushanis-projects\.vercel\.app$/.test(
-          origin
-        )
-      ) {
-        return callback(null, true);
-      }
-
-      callback(new Error("Not allowed by CORS"));
+      return callback(new Error("Not allowed by CORS"));
     },
-    credentials: true,
+
+    // Your admin authentication uses Authorization: Bearer <token>,
+    // not cookies.
+    credentials: false,
+
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-app.use(express.json());
+// Limit JSON request size
+app.use(express.json({ limit: "100kb" }));
 
 app.get("/", (_req, res) => {
   res.json({
