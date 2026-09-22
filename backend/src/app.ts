@@ -19,8 +19,6 @@ const allowedOrigins = (process.env.CORS_ORIGINS ?? "")
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests without an Origin header
-      // (for example Postman, curl, server-to-server requests).
       if (!origin) {
         return callback(null, true);
       }
@@ -32,8 +30,6 @@ app.use(
       return callback(new Error("Not allowed by CORS"));
     },
 
-    // Your admin authentication uses Authorization: Bearer <token>,
-    // not cookies.
     credentials: false,
 
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -42,7 +38,6 @@ app.use(
   })
 );
 
-// Limit JSON request size
 app.use(express.json({ limit: "100kb" }));
 
 app.get("/", (_req, res) => {
