@@ -132,11 +132,7 @@ export default function Education() {
                             {education.institution}
                           </p>
                         </div>
-                       {education.specialization && (
-  <span className="rounded-full bg-[#00c2ff]/10 px-3 py-1.5 text-[11px] text-[#66d9ff] sm:text-xs">
-    Specialization: {education.specialization}
-  </span>
-)}
+                       
                         {/* Period */}
                         <span className="w-fit max-w-full rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-slate-400 sm:shrink-0 sm:text-sm">
                           {period}
@@ -149,7 +145,11 @@ export default function Education() {
                           {education.description}
                         </p>
                       )}
-
+                      {education.specialization && (
+  <span className="rounded-full bg-[#00c2ff]/10 px-3 py-1.5 text-[11px] text-[#66d9ff] sm:text-xs">
+    Specialization: {education.specialization}
+  </span>
+)}
                       {/* Field + Grade */}
                       <div className="mt-5 flex flex-wrap gap-2">
                         {education.field && (

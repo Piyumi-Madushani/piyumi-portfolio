@@ -181,31 +181,12 @@ export default function Projects() {
 
                     {/* Content */}
                     <div className="p-5 sm:p-7 lg:p-8">
-                      {/* Title + link */}
-                      <div className="flex items-start justify-between gap-3 sm:gap-4">
-                        <h3 className="text-xl font-semibold text-white sm:text-2xl">
-                          {project.title}
-                        </h3>
-
-                        {project.liveUrl ? (
-                          <a
-                            href={project.liveUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            aria-label={`View ${project.title} project`}
-                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 text-slate-400 transition-all duration-300 group-hover:border-[#6c5ce7]/40 group-hover:bg-[#6c5ce7]/10 group-hover:text-white sm:h-10 sm:w-10"
-                          >
-                            <ArrowUpRight size={17} />
-                          </a>
-                        ) : (
-                          <span
-                            aria-hidden="true"
-                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 text-slate-400 transition-all duration-300 group-hover:border-[#6c5ce7]/40 group-hover:bg-[#6c5ce7]/10 group-hover:text-white sm:h-10 sm:w-10"
-                          >
-                            <ArrowUpRight size={17} />
-                          </span>
-                        )}
-                      </div>
+                      {/* Title */}
+<div>
+  <h3 className="text-xl font-semibold text-white sm:text-2xl">
+    {project.title}
+  </h3>
+</div>
 
                       {/* Description */}
                       <p className="mt-4 text-sm leading-6 text-slate-400 sm:leading-7">
@@ -224,29 +205,42 @@ export default function Projects() {
                         ))}
                       </div>
 
-                      {/* Footer */}
-                      <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4 sm:mt-8 sm:pt-5">
-                        <span className="text-[10px] uppercase tracking-[0.15em] text-slate-600 sm:text-xs sm:tracking-[0.2em]">
-                          Case Study
-                        </span>
+                      {/* Footer / Project Links */}
+<div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4 sm:mt-8 sm:pt-5">
+  <span className="text-[10px] uppercase tracking-[0.15em] text-slate-600 sm:text-xs sm:tracking-[0.2em]">
+    Project Links
+  </span>
 
-                        {project.githubUrl ? (
-                          <a
-                            href={project.githubUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-xs text-slate-500 transition-colors hover:text-[#00c2ff]"
-                          >
-                            GitHub
-                            <ArrowUpRight size={14} />
-                          </a>
-                        ) : (
-                          <span className="flex items-center gap-1 text-xs text-slate-500">
-                            Explore
-                            <ArrowUpRight size={14} />
-                          </span>
-                        )}
-                      </div>
+  <div className="flex items-center gap-3">
+    {/* Live URL - only shown when available */}
+    {project.liveUrl?.trim() && (
+      <a
+        href={project.liveUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`View ${project.title} live project`}
+        className="flex items-center gap-1 text-xs text-slate-500 transition-colors hover:text-[#6c5ce7]"
+      >
+        Live
+        <ArrowUpRight size={14} />
+      </a>
+    )}
+
+    {/* GitHub URL - only shown when available */}
+    {project.githubUrl?.trim() && (
+      <a
+        href={project.githubUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`View ${project.title} GitHub repository`}
+        className="flex items-center gap-1 text-xs text-slate-500 transition-colors hover:text-[#00c2ff]"
+      >
+        GitHub
+        <ArrowUpRight size={14} />
+      </a>
+    )}
+  </div>
+</div>
                     </div>
                   </div>
                 </article>
