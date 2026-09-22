@@ -9,6 +9,7 @@ interface Education {
   institution: string;
   degree: string;
   field: string;
+  specialization?: string;
   startDate: string;
   endDate?: string;
   description?: string;
@@ -126,12 +127,16 @@ export default function Education() {
                           <h4 className="text-lg font-semibold leading-7 text-white sm:text-xl">
                             {education.degree}
                           </h4>
-
+                       
                           <p className="mt-1 text-sm text-[#00c2ff] sm:text-base">
                             {education.institution}
                           </p>
                         </div>
-
+                       {education.specialization && (
+  <span className="rounded-full bg-[#00c2ff]/10 px-3 py-1.5 text-[11px] text-[#66d9ff] sm:text-xs">
+    Specialization: {education.specialization}
+  </span>
+)}
                         {/* Period */}
                         <span className="w-fit max-w-full rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-slate-400 sm:shrink-0 sm:text-sm">
                           {period}

@@ -13,6 +13,7 @@ interface Education {
   institution: string;
   degree: string;
   field: string;
+  specialization?: string;
   startDate: string;
   endDate?: string;
   description?: string;
@@ -30,6 +31,7 @@ const emptyForm = {
   institution: "",
   degree: "",
   field: "",
+  specialization: "",
   startDate: "",
   endDate: "",
   description: "",
@@ -169,6 +171,7 @@ export default function AdminEducationPage() {
         institution: formData.institution,
         degree: formData.degree,
         field: formData.field,
+        specialization: formData.specialization,
         startDate: formData.startDate,
         endDate: formData.current
           ? ""
@@ -244,11 +247,13 @@ export default function AdminEducationPage() {
       institution: education.institution,
       degree: education.degree,
       field: education.field,
+      specialization: education.specialization || "",
       startDate: education.startDate,
       endDate: education.endDate || "",
       description: education.description || "",
       grade: education.grade || "",
-      current: education.current,
+      current: education.current
+      
     });
 
     setSuccess("");
@@ -453,6 +458,20 @@ export default function AdminEducationPage() {
                 className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#6C5CE7]"
               />
             </div>
+           {/* Specialization */}
+<div>
+  <label className="mb-2 block text-sm text-gray-300">
+    Specialization
+  </label>
+
+  <input
+    name="specialization"
+    value={formData.specialization}
+    onChange={handleChange}
+    placeholder="Software Technology"
+    className="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#6C5CE7]"
+  />
+</div>
 
             {/* Start Date */}
 
@@ -611,7 +630,11 @@ export default function AdminEducationPage() {
                         </p>
                       )}
                     </div>
-
+                    {education.specialization && (
+  <p className="mt-1 text-sm text-[#00c2ff]">
+    Specialization: {education.specialization}
+  </p>
+)}
                     <span className="w-fit rounded-full bg-white/5 px-3 py-1 text-xs text-gray-400">
                       {education.startDate}
                       {" — "}
