@@ -4,6 +4,7 @@ export interface IEducation extends Document {
   institution: string;
   degree: string;
   field: string;
+  specialization?: string;
   startDate: string;
   endDate?: string;
   description?: string;
@@ -25,11 +26,18 @@ const educationSchema = new Schema<IEducation>(
       trim: true,
     },
 
+
     field: {
       type: String,
       required: true,
       trim: true,
     },
+
+    specialization: {
+  type: String,
+  default: "",
+  trim: true,
+},
 
     startDate: {
       type: String,
