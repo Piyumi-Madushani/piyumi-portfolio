@@ -155,12 +155,19 @@ export default function Projects() {
 
                       <div className="absolute h-14 w-14 rounded-full border border-white/10 sm:h-16 sm:w-16" />
 
-                      {/* Project icon */}
-                      <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-[#8b7cf6] shadow-2xl shadow-[#6c5ce7]/10 transition-transform duration-500 group-hover:scale-110 sm:h-16 sm:w-16">
-                        <Icon size={26} className="sm:hidden" />
-                        <Icon size={30} className="hidden sm:block" />
-                      </div>
-
+                      {/* Project image / fallback icon */}
+{project.image ? (
+  <img
+    src={project.image}
+    alt={`${project.title} project`}
+    className="relative z-10 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+  />
+) : (
+  <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-[#8b7cf6] shadow-2xl shadow-[#6c5ce7]/10 transition-transform duration-500 group-hover:scale-110 sm:h-16 sm:w-16">
+    <Icon size={26} className="sm:hidden" />
+    <Icon size={30} className="hidden sm:block" />
+  </div>
+)}
                       {/* Number */}
                       <span className="absolute right-4 top-4 text-[10px] font-medium tracking-[0.2em] text-slate-600 sm:right-6 sm:top-5 sm:text-xs">
                         {String(index + 1).padStart(2, "0")}
