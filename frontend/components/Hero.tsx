@@ -77,7 +77,7 @@ export default function Hero() {
             <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-[#00c2ff]" />
 
             <span className="text-xs text-slate-300 sm:text-sm">
-              Software Engineer · Project Manager
+              Software Engineer · AI / Full-stack · Project Management
             </span>
           </div>
 
@@ -87,12 +87,12 @@ export default function Hero() {
             <br />
 
             <span className="bg-gradient-to-r from-[#6c5ce7] via-[#8b7cf6] to-[#00c2ff] bg-clip-text text-transparent">
-              digital solutions
+              intelligent digital solutions
             </span>
 
             <br />
 
-            and leading projects forward.
+            and turning ideas into reality.
           </h1>
 
           {/* Introduction */}
@@ -129,7 +129,7 @@ export default function Hero() {
           {/* Technical Skills */}
           <div className="mt-12 sm:mt-14">
             <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 sm:tracking-[0.25em]">
-              Technologies I Work With
+              Core Technologies
             </p>
 
             <div className="flex max-w-4xl flex-wrap gap-2.5 sm:gap-3">
@@ -141,7 +141,7 @@ export default function Hero() {
                   {skill}
                 </span>
               ))}
-            </div>
+            </div> 
           </div>
 
           {/* Scroll */}

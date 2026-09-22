@@ -6,7 +6,7 @@ import {
   MapPin,
   MessageCircle,
 } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import { sendContact } from "@/lib/api";
 
 const contactDetails = [
@@ -20,7 +20,7 @@ const contactDetails = [
     icon: MapPin,
     label: "Location",
     value: "Sri Lanka",
-    href: "#",
+    href: "https://www.google.com/maps/search/?api=1&query=Sri+Lanka",
   },
 ];
 
@@ -37,9 +37,7 @@ export default function Contact() {
   const [error, setError] = useState("");
 
   const handleChange = (
-    event: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement
-    >
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { id, value } = event.target;
 
@@ -91,7 +89,6 @@ export default function Contact() {
       <div className="absolute left-1/2 top-1/3 -z-10 h-64 w-64 -translate-x-1/2 rounded-full bg-[#6c5ce7]/15 blur-[100px] sm:h-80 sm:w-80 sm:blur-[120px] lg:h-96 lg:w-96 lg:blur-[130px]" />
 
       <div className="mx-auto max-w-7xl">
-
         {/* Heading */}
         <div className="mx-auto max-w-3xl text-center">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-[#00c2ff] sm:mb-4 sm:text-sm sm:tracking-[0.3em]">
@@ -99,25 +96,23 @@ export default function Contact() {
           </p>
 
           <h2 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
-            Let&apos;s build something{" "}
+            Let&apos;s connect and build{" "}
             <span className="bg-gradient-to-r from-[#6c5ce7] to-[#00c2ff] bg-clip-text text-transparent">
-              meaningful.
+              something meaningful.
             </span>
           </h2>
 
           <p className="mt-5 text-sm leading-6 text-slate-400 sm:mt-6 sm:text-base sm:leading-7 lg:text-lg">
-            I&apos;m open to software engineering opportunities, project-based
-            work, internships, and opportunities to contribute to
+            I&apos;m open to software engineering opportunities, internships,
+            project-based work, and opportunities to contribute to
             technology-driven teams.
           </p>
         </div>
 
         {/* Contact content */}
         <div className="mt-10 grid gap-5 sm:mt-12 sm:gap-6 lg:mt-14 lg:grid-cols-[0.8fr_1.2fr]">
-
           {/* Contact information */}
           <div className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.02] p-5 sm:rounded-3xl sm:p-7 lg:p-8">
-
             <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-xl bg-[#6c5ce7]/10 text-[#8b7cf6] sm:mb-8 sm:h-12 sm:w-12 sm:rounded-2xl">
               <MessageCircle size={21} className="sm:hidden" />
               <MessageCircle size={23} className="hidden sm:block" />
@@ -128,8 +123,8 @@ export default function Contact() {
             </h3>
 
             <p className="mt-3 text-sm leading-6 text-slate-500 sm:mt-4 sm:text-base sm:leading-7">
-              Whether you have an opportunity, a project idea, or simply
-              want to connect, feel free to reach out.
+              Have an opportunity, project idea, or professional question?
+              I&apos;d be happy to connect and hear more about it.
             </p>
 
             <div className="mt-6 space-y-3 sm:mt-8 sm:space-y-4">
@@ -140,6 +135,14 @@ export default function Contact() {
                   <a
                     key={item.label}
                     href={item.href}
+                    target={
+                      item.label === "Location" ? "_blank" : undefined
+                    }
+                    rel={
+                      item.label === "Location"
+                        ? "noopener noreferrer"
+                        : undefined
+                    }
                     className="group flex min-w-0 items-center gap-3 rounded-xl border border-white/10 bg-[#0b0f1a] p-3.5 transition-all duration-300 hover:border-[#6c5ce7]/30 hover:bg-white/[0.03] sm:gap-4 sm:rounded-2xl sm:p-4"
                   >
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 text-[#00c2ff] sm:h-10 sm:w-10 sm:rounded-xl">
@@ -168,7 +171,7 @@ export default function Contact() {
 
               <div className="flex flex-wrap gap-2.5 sm:gap-3">
                 <a
-                  href="https://github.com/"
+                  href="https://github.com/Piyumi-Madushani"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="rounded-full border border-white/10 px-3.5 py-2 text-xs text-slate-400 transition hover:border-[#6c5ce7]/40 hover:bg-[#6c5ce7]/10 hover:text-white sm:px-4 sm:text-sm"
@@ -177,7 +180,7 @@ export default function Contact() {
                 </a>
 
                 <a
-                  href="https://linkedin.com/"
+                  href="https://www.linkedin.com/in/piyumimadushani/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="rounded-full border border-white/10 px-3.5 py-2 text-xs text-slate-400 transition hover:border-[#00c2ff]/40 hover:bg-[#00c2ff]/10 hover:text-white sm:px-4 sm:text-sm"
@@ -190,20 +193,19 @@ export default function Contact() {
 
           {/* Contact form */}
           <div className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.02] p-5 sm:rounded-3xl sm:p-7 lg:p-8">
-
             <h3 className="text-xl font-semibold sm:text-2xl">
               Send a message
             </h3>
 
             <p className="mt-2 text-sm leading-6 text-slate-500">
-              Have an opportunity or project in mind? Send me a message.
+              Tell me a little about the opportunity or project you have in
+              mind.
             </p>
 
             <form
               onSubmit={handleSubmit}
               className="mt-6 space-y-4 sm:mt-8 sm:space-y-5"
             >
-
               {/* Name */}
               <div>
                 <label
@@ -219,6 +221,8 @@ export default function Contact() {
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Your name"
+                  autoComplete="name"
+                  maxLength={100}
                   required
                   className="w-full rounded-xl border border-white/10 bg-[#0b0f1a] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 transition focus:border-[#6c5ce7]/60"
                 />
@@ -239,6 +243,8 @@ export default function Contact() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="you@example.com"
+                  autoComplete="email"
+                  maxLength={254}
                   required
                   className="w-full rounded-xl border border-white/10 bg-[#0b0f1a] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 transition focus:border-[#6c5ce7]/60"
                 />
@@ -259,6 +265,7 @@ export default function Contact() {
                   value={formData.subject}
                   onChange={handleChange}
                   placeholder="What would you like to discuss?"
+                  maxLength={200}
                   className="w-full rounded-xl border border-white/10 bg-[#0b0f1a] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 transition focus:border-[#6c5ce7]/60"
                 />
               </div>
@@ -278,6 +285,7 @@ export default function Contact() {
                   value={formData.message}
                   onChange={handleChange}
                   placeholder="Tell me about your opportunity or project..."
+                  maxLength={2000}
                   required
                   className="w-full resize-none rounded-xl border border-white/10 bg-[#0b0f1a] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 transition focus:border-[#6c5ce7]/60"
                 />
@@ -285,14 +293,20 @@ export default function Contact() {
 
               {/* Success message */}
               {success && (
-                <div className="rounded-xl border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm leading-6 text-green-400">
+                <div
+                  role="status"
+                  className="rounded-xl border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm leading-6 text-green-400"
+                >
                   {success}
                 </div>
               )}
 
               {/* Error message */}
               {error && (
-                <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm leading-6 text-red-400">
+                <div
+                  role="alert"
+                  className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm leading-6 text-red-400"
+                >
                   {error}
                 </div>
               )}
@@ -312,7 +326,6 @@ export default function Contact() {
                   />
                 )}
               </button>
-
             </form>
           </div>
         </div>

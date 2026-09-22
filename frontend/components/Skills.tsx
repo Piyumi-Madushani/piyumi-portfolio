@@ -54,7 +54,7 @@ export default function Skills() {
       }
     };
 
-    loadSkills();
+    void loadSkills();
   }, []);
 
   const softwareSkills = skills.filter(
@@ -85,16 +85,16 @@ export default function Skills() {
           </p>
 
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-            Turning ideas into{" "}
+            Technical skills backed by{" "}
             <span className="bg-gradient-to-r from-[#6c5ce7] to-[#00c2ff] bg-clip-text text-transparent">
-              working solutions.
+              practical experience.
             </span>
           </h2>
 
           <p className="mt-5 text-sm leading-6 text-slate-400 sm:mt-6 sm:text-base sm:leading-7 lg:text-lg">
-            My experience combines software engineering with project
-            management, allowing me to contribute both to building products
-            and coordinating the work required to deliver them.
+            My skill set combines software development, AI application
+            development, and project coordination, built through academic
+            work, internships, and practical projects.
           </p>
         </div>
 
@@ -128,7 +128,7 @@ export default function Skills() {
                   </h3>
 
                   <p className="mt-1 text-xs leading-5 text-slate-500 sm:text-sm">
-                    Technologies and tools I use to build applications.
+                    Technologies I use to design and build software.
                   </p>
                 </div>
               </div>
@@ -190,8 +190,8 @@ export default function Skills() {
                   </h3>
 
                   <p className="mt-1 text-xs leading-5 text-slate-500 sm:text-sm">
-                    Practices I use to organize, coordinate, and track
-                    projects.
+                    Practices that support planning, coordination, and
+                    delivery.
                   </p>
                 </div>
               </div>
@@ -219,12 +219,14 @@ export default function Skills() {
                       className="mb-4 text-[#00c2ff]"
                     />
 
-                    <h4 className="font-semibold">People & Delivery</h4>
+                    <h4 className="font-semibold text-white">
+                      Collaboration & Delivery
+                    </h4>
 
                     <p className="mt-3 text-sm leading-6 text-slate-500">
-                      I focus on clear communication, structured planning,
-                      collaboration, progress visibility, and keeping project
-                      activities aligned with delivery goals.
+                      I value clear communication, structured planning,
+                      collaboration, progress visibility, documentation, and
+                      keeping project activities aligned with delivery goals.
                     </p>
                   </div>
                 </div>

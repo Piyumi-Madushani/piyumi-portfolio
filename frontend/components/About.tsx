@@ -10,19 +10,19 @@ const highlights = [
     icon: Code2,
     title: "Software Engineering",
     description:
-      "Hands-on experience developing full-stack, backend, mobile, and AI-powered applications using modern technologies.",
+      "Practical experience building full-stack, backend, mobile, and AI-powered applications using modern development technologies.",
   },
   {
     icon: BriefcaseBusiness,
     title: "Project Management",
     description:
-      "Experience supporting project planning, task coordination, progress tracking, reporting, and Agile development activities.",
+      "Experience supporting planning, task coordination, progress tracking, reporting, documentation, and Agile project activities.",
   },
   {
     icon: Target,
     title: "Problem Solving",
     description:
-      "Focused on understanding requirements, solving technical challenges, and turning ideas into practical digital solutions.",
+      "Focused on understanding requirements, solving technical challenges, and delivering practical solutions that address real needs.",
   },
 ];
 
@@ -36,7 +36,6 @@ export default function About() {
       <div className="absolute right-0 top-1/4 -z-10 h-80 w-80 rounded-full bg-[#6c5ce7]/10 blur-[120px]" />
 
       <div className="mx-auto max-w-7xl">
-
         {/* Heading */}
         <div className="mb-16 max-w-3xl">
           <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-[#00c2ff]">
@@ -44,7 +43,7 @@ export default function About() {
           </p>
 
           <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">
-            Engineering solutions with a{" "}
+            Building software with a{" "}
             <span className="bg-gradient-to-r from-[#6c5ce7] to-[#00c2ff] bg-clip-text text-transparent">
               delivery mindset.
             </span>
@@ -53,32 +52,32 @@ export default function About() {
 
         {/* Main content */}
         <div className="grid gap-12 lg:grid-cols-[1.2fr_0.8fr]">
-
           {/* About text */}
           <div>
             <p className="text-lg leading-8 text-slate-300">
               I&apos;m Piyumi Madushani, an Information and Communication
-              Technology undergraduate at Uva Wellassa University with a
-              strong interest in software engineering and project management.
+              Technology undergraduate at Uva Wellassa University, focused on
+              software engineering, AI-powered application development, and
+              project management.
             </p>
 
             <p className="mt-6 leading-7 text-slate-400">
               Through academic projects, internships, and independent
               development, I have gained practical experience building
-              web applications, backend services, mobile applications, and
-              AI-powered systems. I enjoy working across different parts of
-              the development process, from understanding requirements and
-              designing solutions to implementing, testing, and documenting
-              software.
+              full-stack web applications, backend services, mobile
+              applications, and AI-powered systems. I enjoy working across
+              the development lifecycle, from understanding requirements and
+              designing solutions to implementation, testing, and
+              documentation.
             </p>
 
             <p className="mt-6 leading-7 text-slate-400">
-              Alongside technical development, I have experience supporting
-              project activities such as task planning, progress tracking,
-              team coordination, reporting, and Agile practices. This
-              combination allows me to understand both the technical side of
-              a product and the coordination needed to move a project
-              toward delivery.
+              I also have practical experience supporting software project
+              activities, including task planning, progress tracking, team
+              coordination, reporting, sprint reviews, retrospectives, and
+              documentation. This combination of technical and coordination
+              experience helps me understand both how software is built and
+              how teams work together to deliver it.
             </p>
 
             {/* Education mini card */}
@@ -93,7 +92,7 @@ export default function About() {
                 </p>
 
                 <h3 className="mt-1 font-semibold text-white">
-                  Bachelor of Information & Communication Technology
+                  Bachelor of Information &amp; Communication Technology
                 </h3>
 
                 <p className="mt-1 text-sm text-slate-400">
@@ -132,7 +131,6 @@ export default function About() {
               );
             })}
           </div>
-
         </div>
       </div>
     </section>
